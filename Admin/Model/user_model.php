@@ -137,3 +137,109 @@ function update_user_role($conn, $user_id, $role) {
 
     return mysqli_stmt_execute($stmt);
 }
+
+function search_users_for_admin($conn, $search) {
+    $search_param = "%" . $search . "%";
+
+    $sql = "SELECT id, name, email, phone, company_name, profile_pic, role, is_active, created_at
+        FROM users
+        WHERE name LIKE ?
+        OR email LIKE ?
+        OR phone LIKE ?
+        OR role LIKE ?
+        OR company_name LIKE ?
+        ORDER BY created_at DESC";
+
+    $stmt = mysqli_prepare($conn, $sql);
+
+    if (!$stmt) {
+        return false;
+    }
+
+    mysqli_stmt_bind_param(
+        $stmt,
+        "sssss",
+        $search_param,
+        $search_param,
+        $search_param,
+        $search_param,
+        $search_param
+    );
+
+    mysqli_stmt_execute($stmt);
+
+    return mysqli_stmt_get_result($stmt);
+}
+
+function update_user_profile($conn, $user_id, $name, $phone, $company_name, $profile_pic) {
+    if ($profile_pic != "") {
+        $sql = "UPDATE users 
+                SET name = ?, phone = ?, company_name = ?, profile_pic = ?
+                WHERE id = ?";
+
+        $stmt = mysqli_prepare($conn, $sql);
+
+        if (!$stmt) {
+            return false;
+        }
+
+        mysqli_stmt_bind_param($stmt, "ssssi", $name, $phone, $company_name, $profile_pic, $user_id);
+    } else {
+        $sql = "UPDATE users 
+                SET name = ?, phone = ?, company_name = ?
+                WHERE id = ?";
+
+        $stmt = mysqli_prepare($conn, $sql);
+
+        if (!$stmt) {
+            return false;
+        }
+
+        mysqli_stmt_bind_param($stmt, "sssi", $name, $phone, $company_name, $user_id);
+    }
+
+    return mysqli_stmt_execute($stmt);
+}
+
+function update_user_password($conn, $user_id, $password_hash) {
+    $sql = "UPDATE users SET password_hash = ? WHERE id = ?";
+
+    $stmt = mysqli_prepare($conn, $sql);
+
+    if (!$stmt) {
+        return false;
+    }
+
+    mysqli_stmt_bind_param($stmt, "si", $password_hash, $user_id);
+
+    return mysqli_stmt_execute($stmt);
+}
+
+function create_user_by_admin($conn, $name, $email, $password_hash, $role, $phone, $company_name) {
+    $sql = "INSERT INTO users 
+            (name, email, password_hash, role, phone, company_name)
+            VALUES (?, ?, ?, ?, ?, ?)";
+
+    $stmt = mysqli_prepare($conn, $sql);
+
+    if (!$stmt) {
+        return false;
+    }
+
+    mysqli_stmt_bind_param($stmt, "ssssss", $name, $email, $password_hash, $role, $phone, $company_name);
+
+    if (mysqli_stmt_execute($stmt)) {
+        return mysqli_insert_id($conn);
+    }
+
+    return false;
+}
+
+function get_all_users_for_admin($conn) {
+    $sql = "SELECT * FROM users 
+            ORDER BY created_at DESC";
+
+    $result = mysqli_query($conn, $sql);
+
+    return $result;
+}
