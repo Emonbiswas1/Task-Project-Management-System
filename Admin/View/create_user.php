@@ -42,7 +42,6 @@ check_role(["admin"]);
         unset($_SESSION["success"]);
     }
     ?>
-
     <form id="adminCreateUserForm" action="../Controller/admin_user_controller.php" method="POST">
         <input type="hidden" name="action" value="create_user">
 
