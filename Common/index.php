@@ -1,12 +1,10 @@
 <!-- <?php
 
-$host = "localhost";
-$username = "root";
-$password = "";
-$database = "summer project";
+<?php
 
-$conn = mysqli_connect($host, $username, $password, $database);
+session_start();
 
-if (!$conn) {
-    die("Database connection failed: " . mysqli_connect_error());
-} -->
+include "../../DB/db.php";
+include "../Model/user_model.php";
+
+$errors = [];
