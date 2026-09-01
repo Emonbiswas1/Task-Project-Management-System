@@ -117,3 +117,89 @@ if ($total_tasks > 0) {
 
     <hr>
 
+<h2>Recent Comments</h2>
+
+    <table border="1" cellpadding="10">
+        <tr>
+            <th>ID</th>
+            <th>Project</th>
+            <th>Task</th>
+            <th>Comment</th>
+            <th>Visibility</th>
+            <th>Created At</th>
+        </tr>
+
+        <?php if ($recent_comments && mysqli_num_rows($recent_comments) > 0): ?>
+            <?php while ($comment = mysqli_fetch_assoc($recent_comments)): ?>
+                <tr>
+                    <td><?php echo $comment["id"]; ?></td>
+                    <td><?php echo htmlspecialchars($comment["project_name"] ?? "N/A"); ?></td>
+                    <td><?php echo htmlspecialchars($comment["task_title"] ?? "N/A"); ?></td>
+                    <td><?php echo htmlspecialchars($comment["body"]); ?></td>
+                    <td>
+                        <?php
+                        if ($comment["is_internal"] == 1) {
+                            echo "Internal Only";
+                        } else {
+                            echo "Client Visible";
+                        }
+                        ?>
+                    </td>
+                    <td><?php echo htmlspecialchars($comment["created_at"]); ?></td>
+                </tr>
+            <?php endwhile; ?>
+        <?php else: ?>
+            <tr>
+                <td colspan="6">No comments found.</td>
+            </tr>
+        <?php endif; ?>
+    </table>
+
+    <hr>
+
+    <h2>Recent Attachments</h2>
+
+    <table border="1" cellpadding="10">
+        <tr>
+            <th>ID</th>
+            <th>Project</th>
+            <th>Task</th>
+            <th>File Name</th>
+            <th>Size</th>
+            <th>Visibility</th>
+            <th>Uploaded At</th>
+            <th>Open</th>
+        </tr>
+
+        <?php if ($recent_attachments && mysqli_num_rows($recent_attachments) > 0): ?>
+            <?php while ($attachment = mysqli_fetch_assoc($recent_attachments)): ?>
+                <tr>
+                    <td><?php echo $attachment["id"]; ?></td>
+                    <td><?php echo htmlspecialchars($attachment["project_name"] ?? "N/A"); ?></td>
+                    <td><?php echo htmlspecialchars($attachment["task_title"] ?? "N/A"); ?></td>
+                    <td><?php echo htmlspecialchars($attachment["file_name"]); ?></td>
+                    <td><?php echo round($attachment["file_size"] / 1024, 2); ?> KB</td>
+                    <td>
+                        <?php
+                        if ($attachment["is_client_visible"] == 1) {
+                            echo "Client Visible";
+                        } else {
+                            echo "Internal Only";
+                        }
+                        ?>
+                    </td>
+                    <td><?php echo htmlspecialchars($attachment["uploaded_at"]); ?></td>
+                    <td>
+                        <a href="../../<?php echo htmlspecialchars($attachment["file_path"]); ?>" target="_blank">Open</a>
+                    </td>
+                </tr>
+            <?php endwhile; ?>
+        <?php else: ?>
+            <tr>
+                <td colspan="8">No attachments found.</td>
+            </tr>
+        <?php endif; ?>
+    </table>
+
+</body>
+</html>
