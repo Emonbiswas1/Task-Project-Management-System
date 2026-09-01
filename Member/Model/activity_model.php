@@ -43,3 +43,8 @@ function get_client_activity_feed($conn, $client_id) {
     if (!$stmt) {
         return false;
     }
+ mysqli_stmt_bind_param($stmt, "i", $client_id);
+    mysqli_stmt_execute($stmt);
+
+    return mysqli_stmt_get_result($stmt);
+}
