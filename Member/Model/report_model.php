@@ -289,3 +289,80 @@ function get_member_recent_attachments($conn, $member_id) {
     return mysqli_stmt_get_result($stmt);
 }
 
+function get_teamlead_project_time_report($conn, $team_lead_id, $project_id = "") {
+    $sql = "SELECT 
+                p.id AS project_id,
+                p.name AS project_name,
+                t.id AS task_id,
+                t.title AS task_title,
+                u.id AS member_id,
+                u.name AS member_name,
+                u.email AS member_email,
+                SUM(tl.hours_logged) AS total_hours,
+                MAX(tl.logged_at) AS last_logged_at
+            FROM time_logs tl
+            LEFT JOIN tasks t ON tl.task_id = t.id
+            LEFT JOIN projects p ON t.project_id = p.id
+            LEFT JOIN workspaces w ON p.workspace_id = w.id
+            LEFT JOIN users u ON tl.user_id = u.id
+            WHERE w.owner_id = ?";
+
+    $types = "i";
+    $params = [$team_lead_id];
+
+    if ($project_id != "") {
+        $sql .= " AND p.id = ?";
+        $types .= "i";
+        $params[] = $project_id;
+    }
+
+    $sql .= " GROUP BY p.id, p.name, t.id, t.title, u.id, u.name, u.email
+              ORDER BY p.name ASC, u.name ASC, t.title ASC";
+
+    $stmt = mysqli_prepare($conn, $sql);
+
+    if (!$stmt) {
+        return false;
+    }
+
+    mysqli_stmt_bind_param($stmt, $types, ...$params);
+    mysqli_stmt_execute($stmt);
+
+    return mysqli_stmt_get_result($stmt);
+}
+
+function get_teamlead_project_total_hours($conn, $team_lead_id, $project_id = "") {
+    $sql = "SELECT SUM(tl.hours_logged) AS total_hours
+            FROM time_logs tl
+            LEFT JOIN tasks t ON tl.task_id = t.id
+            LEFT JOIN projects p ON t.project_id = p.id
+            LEFT JOIN workspaces w ON p.workspace_id = w.id
+            WHERE w.owner_id = ?";
+
+    $types = "i";
+    $params = [$team_lead_id];
+
+    if ($project_id != "") {
+        $sql .= " AND p.id = ?";
+        $types .= "i";
+        $params[] = $project_id;
+    }
+
+    $stmt = mysqli_prepare($conn, $sql);
+
+    if (!$stmt) {
+        return 0;
+    }
+
+    mysqli_stmt_bind_param($stmt, $types, ...$params);
+    mysqli_stmt_execute($stmt);
+
+    $result = mysqli_stmt_get_result($stmt);
+    $row = mysqli_fetch_assoc($result);
+
+    if ($row["total_hours"] == null) {
+        return 0;
+    }
+
+    return $row["total_hours"];
+}
