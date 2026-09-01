@@ -171,3 +171,121 @@ function get_teamlead_burndown_summary($conn, $team_lead_id) {
 
     return mysqli_stmt_get_result($stmt);
 }
+function get_member_productivity_summary($conn, $member_id) {
+    $sql = "SELECT 
+                COUNT(t.id) AS total_tasks,
+                SUM(CASE WHEN t.status = 'done' THEN 1 ELSE 0 END) AS completed_tasks,
+                SUM(CASE WHEN t.status != 'done' THEN 1 ELSE 0 END) AS pending_tasks,
+                SUM(CASE WHEN t.due_date < CURDATE() AND t.status != 'done' THEN 1 ELSE 0 END) AS overdue_tasks
+            FROM tasks t
+            WHERE t.assigned_to = ?";
+
+    $stmt = mysqli_prepare($conn, $sql);
+
+    if (!$stmt) {
+        return false;
+    }
+
+    mysqli_stmt_bind_param($stmt, "i", $member_id);
+    mysqli_stmt_execute($stmt);
+
+    $result = mysqli_stmt_get_result($stmt);
+    return mysqli_fetch_assoc($result);
+}
+
+function get_member_total_logged_hours($conn, $member_id) {
+    $sql = "SELECT SUM(hours_logged) AS total_hours
+            FROM time_logs
+            WHERE user_id = ?";
+
+    $stmt = mysqli_prepare($conn, $sql);
+
+    if (!$stmt) {
+        return 0;
+    }
+
+    mysqli_stmt_bind_param($stmt, "i", $member_id);
+    mysqli_stmt_execute($stmt);
+
+    $result = mysqli_stmt_get_result($stmt);
+    $row = mysqli_fetch_assoc($result);
+
+    if ($row["total_hours"] == null) {
+        return 0;
+    }
+
+    return $row["total_hours"];
+}
+
+function get_member_recent_time_logs($conn, $member_id) {
+    $sql = "SELECT 
+                tl.*,
+                t.title AS task_title,
+                p.name AS project_name
+            FROM time_logs tl
+            LEFT JOIN tasks t ON tl.task_id = t.id
+            LEFT JOIN projects p ON t.project_id = p.id
+            WHERE tl.user_id = ?
+            ORDER BY tl.logged_at DESC
+            LIMIT 10";
+
+    $stmt = mysqli_prepare($conn, $sql);
+
+    if (!$stmt) {
+        return false;
+    }
+
+    mysqli_stmt_bind_param($stmt, "i", $member_id);
+    mysqli_stmt_execute($stmt);
+
+    return mysqli_stmt_get_result($stmt);
+}
+
+function get_member_recent_comments($conn, $member_id) {
+    $sql = "SELECT 
+                c.*,
+                t.title AS task_title,
+                p.name AS project_name
+            FROM comments c
+            LEFT JOIN tasks t ON c.task_id = t.id
+            LEFT JOIN projects p ON t.project_id = p.id
+            WHERE c.user_id = ?
+            ORDER BY c.created_at DESC
+            LIMIT 10";
+
+    $stmt = mysqli_prepare($conn, $sql);
+
+    if (!$stmt) {
+        return false;
+    }
+
+    mysqli_stmt_bind_param($stmt, "i", $member_id);
+    mysqli_stmt_execute($stmt);
+
+    return mysqli_stmt_get_result($stmt);
+}
+
+function get_member_recent_attachments($conn, $member_id) {
+    $sql = "SELECT 
+                ta.*,
+                t.title AS task_title,
+                p.name AS project_name
+            FROM task_attachments ta
+            LEFT JOIN tasks t ON ta.task_id = t.id
+            LEFT JOIN projects p ON t.project_id = p.id
+            WHERE ta.uploaded_by = ?
+            ORDER BY ta.uploaded_at DESC
+            LIMIT 10";
+
+    $stmt = mysqli_prepare($conn, $sql);
+
+    if (!$stmt) {
+        return false;
+    }
+
+    mysqli_stmt_bind_param($stmt, "i", $member_id);
+    mysqli_stmt_execute($stmt);
+
+    return mysqli_stmt_get_result($stmt);
+}
+
