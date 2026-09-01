@@ -260,5 +260,78 @@ $attachments = get_attachments_by_task($conn, $task_id);
             </tr>
         <?php endif; ?>
     </table>
+<h2>Add Comment</h2>
 
+    <form id="memberCommentForm" action="../Controller/comment_controller.php" method="POST">
+        <input type="hidden" name="action" value="add_comment">
+        <input type="hidden" name="task_id" value="<?php echo $task["id"]; ?>">
+
+        <div>
+            <label>Comment</label><br>
+            <textarea name="comment_body" id="member_comment_body"></textarea>
+            <small id="memberCommentBodyError"></small>
+        </div>
+
+        <br>
+
+        <div>
+            <label>Comment Visibility</label><br>
+            <select name="is_internal" id="member_comment_visibility">
+                <option value="">Select Visibility</option>
+                <option value="1">Internal Only</option>
+                <option value="0">Client Visible</option>
+            </select>
+            <small id="memberCommentVisibilityError"></small>
+        </div>
+
+        <br>
+
+        <button type="submit">Add Comment</button>
+    </form>
+
+    <hr>
+
+    <h2>Task Comments</h2>
+
+    <table border="1" cellpadding="10">
+        <tr>
+            <th>ID</th>
+            <th>Comment By</th>
+            <th>User Role</th>
+            <th>Comment</th>
+            <th>Visibility</th>
+            <th>Created At</th>
+        </tr>
+
+        <?php if ($comments && mysqli_num_rows($comments) > 0): ?>
+            <?php while ($comment = mysqli_fetch_assoc($comments)): ?>
+                <tr>
+                    <td><?php echo $comment["id"]; ?></td>
+                    <td><?php echo htmlspecialchars($comment["user_name"] ?? "Unknown"); ?></td>
+                    <td><?php echo htmlspecialchars($comment["user_role"] ?? "Unknown"); ?></td>
+                    <td><?php echo htmlspecialchars($comment["body"]); ?></td>
+                    <td>
+                        <?php
+                        if ($comment["is_internal"] == 1) {
+                            echo "Internal Only";
+                        } else {
+                            echo "Client Visible";
+                        }
+                        ?>
+                    </td>
+                    <td><?php echo htmlspecialchars($comment["created_at"]); ?></td>
+                </tr>
+            <?php endwhile; ?>
+        <?php else: ?>
+            <tr>
+                <td colspan="6">No comment found.</td>
+            </tr>
+        <?php endif; ?>
+    </table>
+
+    <script src="../../assets/js/ajax.js"></script>
+    <script src="../../assets/js/validation.js"></script>
+
+</body>
+</html>
 
