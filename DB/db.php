@@ -3,7 +3,7 @@
 $host = "localhost";
 $username = "root";
 $password = "";
-$database = "summer project";
+$database = "Task and Project Management System";
 
 $conn = mysqli_connect($host, $username, $password, $database);
 
